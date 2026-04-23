@@ -2,9 +2,12 @@
   "name": "app-starter-project-with-webpack",
   "version": "1.0.0",
   "description": "",
+  "homepage": "https://kusnadi34.github.io/starter-project-1H",
   "scripts": {
     "build": "webpack --config webpack.prod.js",
     "start-dev": "webpack serve --config webpack.dev.js",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
     "serve": "http-server dist"
   },
   "keywords": [],
