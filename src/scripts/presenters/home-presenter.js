@@ -1,4 +1,5 @@
 import StoryModel from '../models/story-model.js';
+import AuthModel from '../models/auth-model.js'; // <-- tambah import
 import MapHelper from '../utils/map-helper.js';
 import { getAllStories, saveStory, clearStories, getUnsyncedStories, deleteStory as deleteOfflineStory } from '../utils/idb.js';
 import { subscribePush, unsubscribePush } from '../utils/push.js';
@@ -11,8 +12,14 @@ export default class HomePresenter {
     this.stories = [];
     this.pushEnabled = false;
   }
-  
+
   async loadStories(forceOnline = false) {
+    const token = AuthModel.getToken();
+    if (!token) {
+      this.view.showError('🔐 Silakan login terlebih dahulu untuk melihat cerita');
+      return;
+    }
+
     try {
       let stories = [];
       if (forceOnline || navigator.onLine) {
@@ -21,30 +28,35 @@ export default class HomePresenter {
         for (const s of stories) {
           await saveStory({ ...s, sync: true });
         }
+        
         const registration = await navigator.serviceWorker.ready;
         const sub = await registration.pushManager.getSubscription();
         this.pushEnabled = !!sub;
         this.view.updatePushButton(this.pushEnabled);
       } else {
         stories = await getAllStories();
-        this.view.showError('Mode offline - data dari cache lokal');
+        if (stories.length === 0) {
+          this.view.showError('📴 Mode offline – belum ada data yang tersimpan. Coba online sekali.');
+          return;
+        }
+        this.view.showError('📴 Mode offline – menampilkan data dari cache');
       }
       this.stories = stories;
       this.view.showStories(stories);
       this.initMap(stories);
     } catch (err) {
-      console.error(err);
+      console.error('loadStories error:', err);
       const offlineStories = await getAllStories();
       if (offlineStories.length) {
         this.view.showStories(offlineStories);
         this.initMap(offlineStories);
-        this.view.showError('Gagal ambil data online. Menampilkan data offline.');
+        this.view.showError('⚠️ Gagal ambil data online. Menampilkan data offline yang tersimpan.');
       } else {
-        this.view.showError('Gagal memuat data. Coba lagi nanti.');
+        this.view.showError('❌ Gagal memuat data. Pastikan koneksi internet dan login sudah benar.');
       }
     }
   }
-  
+   
   initMap(stories) {
     if (!this.map) {
       this.map = MapHelper.initMap('map', -6.2, 106.8, 12);
