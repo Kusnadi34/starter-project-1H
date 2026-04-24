@@ -1,2 +1,2 @@
-APP_URL=<https://kusnadi34.github.io/starter-project-1GA/>
+APP_URL=<https://kusnadi34.github.io/starter-project-1H/>
 MAP_SERVICE_API_KEY=<api_key>
