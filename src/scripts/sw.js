@@ -47,24 +47,31 @@ self.addEventListener('fetch', event => {
 
 self.addEventListener('push', event => {
   let data = {};
+
   if (event.data) {
     try {
       data = event.data.json();
     } catch (e) {
-      const text = event.data.text();
-      data = { title: 'Story App', body: text };
+      data = { title: 'Story App', body: event.data.text() };
     }
   }
-  
+
   const title = data.title || 'Story App';
   const options = {
     body: data.body || 'Ada cerita baru nih!',
     icon: '/favicon.png',
     badge: '/favicon.png',
     data: {
-      url: data.url || '/'
-    }
+      url: data.url || '/#/story/' + (data.storyId || '')
+    },
+    actions: [
+      {
+        action: 'open',
+        title: 'Lihat Detail'
+      }
+    ]
   };
+
   event.waitUntil(
     self.registration.showNotification(title, options)
   );
@@ -72,18 +79,10 @@ self.addEventListener('push', event => {
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const urlToOpen = event.notification.data.url;
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-      for (let client of windowClients) {
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
-  );
-});
 
+  const url = event.notification.data.url;
+
+  if (event.action === 'open' || !event.action) {
+    event.waitUntil(clients.openWindow(url));
+  }
+});
