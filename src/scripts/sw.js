@@ -1,10 +1,12 @@
 const CACHE_NAME = 'storyapp-v4';
+const BASE_PATH = self.location.pathname.replace(/sw\.js$/, '');
+
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/app.bundle.js',
-  '/app.css',
-  '/favicon.png'
+  `${BASE_PATH}`,
+  `${BASE_PATH}index.html`,
+  `${BASE_PATH}app.bundle.js`,
+  `${BASE_PATH}app.css`,
+  `${BASE_PATH}favicon.png`,
 ];
 
 self.addEventListener('install', event => {
