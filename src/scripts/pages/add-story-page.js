@@ -62,6 +62,12 @@ export default class AddStoryPage {
       startBtn.textContent = '📸 Ambil Ulang';
       alert('Foto tersimpan!');
     };
+
+    const photoInput = document.getElementById('photo-input');
+    photoInput.onchange = () => {
+      this.capturedBlob = photoInput.files[0];
+    };
+    
     const form = document.getElementById('story-form');
     form.onsubmit = async (e) => {
       e.preventDefault();
