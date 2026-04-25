@@ -53,30 +53,34 @@ export default class AddStoryPresenter {
     });
   }
   
-  async submit(desc, blob, isOffline = false) {
-    if (!desc.trim()) throw new Error('Deskripsi wajib');
-    if (!blob) throw new Error('Foto belum diambil');
-    if (blob.size > 1_000_000) throw new Error('Ukuran foto max 1MB');
-    const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
-    if (!navigator.onLine || isOffline) {
-      const dummyStory = {
-        id: 'offline_' + Date.now(),
-        description: desc,
-        photoFile: blob,
-        lat: this.selectedLat,
-        lon: this.selectedLon,
-        createdAt: new Date().toISOString(),
-        sync: false,
-        name: 'User (offline)',
-        photoUrl: '#'
-      };
-      await saveStory(dummyStory);
-      return { offline: true };
-    } else {
-      const result = await StoryModel.addStory(desc, file, this.selectedLat, this.selectedLon);
-      return result;
-    }
+  async submit(desc, fileOrBlob, isOffline = false) {
+  if (!desc.trim()) throw new Error('Deskripsi wajib');
+  if (!fileOrBlob) throw new Error('Foto belum dipilih');
+
+  const file = fileOrBlob instanceof File
+    ? fileOrBlob
+    : new File([fileOrBlob], 'photo.jpg', { type: 'image/jpeg' });
+
+  if (!navigator.onLine || isOffline) {
+    const dummyStory = {
+      id: 'offline_' + Date.now(),
+      description: desc,
+      photoFile: fileOrBlob,
+      lat: this.selectedLat,
+      lon: this.selectedLon,
+      createdAt: new Date().toISOString(),
+      sync: false,
+      name: 'User (offline)',
+      photoUrl: '#'
+    };
+
+    await saveStory(dummyStory);
+    return { offline: true };
   }
+
+  const result = await StoryModel.addStory(desc, file, this.selectedLat, this.selectedLon);
+  return result;
+}
   
   reset() {
     this.selectedLat = null;
